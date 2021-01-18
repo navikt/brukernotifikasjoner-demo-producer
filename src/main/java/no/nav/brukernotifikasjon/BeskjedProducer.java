@@ -4,13 +4,16 @@ import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import no.nav.brukernotifikasjon.schemas.Beskjed;
 import no.nav.brukernotifikasjon.schemas.Nokkel;
+import no.nav.brukernotifikasjon.schemas.builders.BeskjedBuilder;
 import org.apache.kafka.clients.producer.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.Properties;
 
 public class BeskjedProducer {
@@ -59,14 +62,31 @@ public class BeskjedProducer {
     }
 
     private static Beskjed createBeskjed() {
-        Instant tidspunkt = Instant.now();
-        String fnr = "000";
+        LocalDateTime tidspunkt = LocalDateTime.now();
+        String fnr = "12345678901";
         String grupperingsId = "gruppeId1";
         String tekst = "Denne er en oppgave produsert av et eksempel. (" + tidspunkt.atZone(ZoneId.of("Europe/Oslo")) + ")";
-        String link = "https://www.nav.no";
+        URL link = createLink();
         int sikkerhetsnivaa = 4;
-        Instant synligFremTil = Instant.now().plus(1, ChronoUnit.HOURS);
-        return new Beskjed(tidspunkt.toEpochMilli(), synligFremTil.toEpochMilli(), fnr, grupperingsId, tekst, link, sikkerhetsnivaa);
+        LocalDateTime synligFremTil = LocalDateTime.now().plusHours(1);
+        return new BeskjedBuilder()
+                .withTidspunkt(tidspunkt)
+                .withFodselsnummer(fnr)
+                .withGrupperingsId(grupperingsId)
+                .withTekst(tekst)
+                .withLink(link)
+                .withSikkerhetsnivaa(sikkerhetsnivaa)
+                .withSynligFremTil(synligFremTil)
+                .build();
     }
 
+    private static URL createLink() {
+        URL link = null;
+        try {
+            link = new URL("https://www.nav.no");
+        } catch (MalformedURLException e) {
+            LOG.error("URL hadde ugyldig format", e);
+        }
+        return link;
+    }
 }

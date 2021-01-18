@@ -4,11 +4,15 @@ import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import no.nav.brukernotifikasjon.schemas.Nokkel;
 import no.nav.brukernotifikasjon.schemas.Oppgave;
+import no.nav.brukernotifikasjon.schemas.builders.OppgaveBuilder;
 import org.apache.kafka.clients.producer.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Properties;
 
@@ -58,14 +62,29 @@ public class OppgaveProducer {
     }
 
     private static Oppgave createOppgave() {
-        Instant now = Instant.now();
-        long tidspunkt = now.toEpochMilli();
-        String fnr = "000";
+        LocalDateTime now = LocalDateTime.now();
+        String fnr = "12345678901";
         String grupperingsId = "gruppeId1";
         String tekst = "Denne er en oppgave produsert av et eksempel. (" + now.atZone(ZoneId.of("Europe/Oslo")) + ")";
-        String link = "https://www.nav.no";
+        URL link = createLink();
         int sikkerhetsnivaa = 4;
-        return new Oppgave(tidspunkt, fnr, grupperingsId, tekst, link, sikkerhetsnivaa);
+        return new OppgaveBuilder()
+                .withTidspunkt(now)
+                .withFodselsnummer(fnr)
+                .withGrupperingsId(grupperingsId)
+                .withTekst(tekst)
+                .withLink(link)
+                .withSikkerhetsnivaa(sikkerhetsnivaa)
+                .build();
     }
 
+    private static URL createLink() {
+        URL link = null;
+        try {
+            link = new URL("https://www.nav.no");
+        } catch (MalformedURLException e) {
+            LOG.error("URL hadde ugyldig format", e);
+        }
+        return link;
+    }
 }
