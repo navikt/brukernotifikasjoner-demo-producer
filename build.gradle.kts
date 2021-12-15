@@ -14,7 +14,7 @@ repositories {
 val avroVersion = "1.8.2"
 val brukernotifikasjonerVersion = "1.2021.01.18-11.12-b9c8c40b98d1"
 val confluentVersion = "5.0.2"
-val log4j2Version = "2.15.0"
+val log4j2Version = "2.16.0"
 val kafkaClientsVersion = "2.0.1"
 
 dependencies {
